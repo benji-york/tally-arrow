@@ -8,4 +8,5 @@ async def tally():
         direction = await websocket.recv()
         print(direction)
 
+
 asyncio.get_event_loop().run_until_complete(tally())

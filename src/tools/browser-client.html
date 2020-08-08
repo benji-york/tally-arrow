@@ -1,20 +1,89 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>WebSocket demo</title>
+      <title>Tally Arrow</title>
+      <script src="https://unpkg.com/konva@7.0.4/konva.min.js"></script>
+      <meta charset="utf-8" />
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          overflow: hidden;
+          background-color: #f0f0f0;
+        }
+      </style>
     </head>
     <body>
-        <script>
-            var ws = new WebSocket("ws://127.0.0.1:8765/"),
-                messages = document.createElement('ul');
-            ws.onmessage = function (event) {
-                var messages = document.getElementsByTagName('ul')[0],
-                    message = document.createElement('li'),
-                    content = document.createTextNode(event.data);
-                message.appendChild(content);
-                messages.appendChild(message);
-            };
-            document.body.appendChild(messages);
-        </script>
+      <script>
+      </script>
+      <div id="container"></div>
+      <script>
+        var width = window.innerWidth;
+        var height = window.innerHeight;
+
+        var stage = new Konva.Stage({
+          container: 'container',
+          width: width,
+          height: height,
+        });
+
+        var layer = new Konva.Layer();
+
+        var arrow = new Konva.Arrow({
+          x: stage.width() / 2,
+          y: stage.height() / 2,
+          points: [0, stage.width() * 0.18, 0, -stage.width() * 0.18],
+          pointerLength: 100,
+          pointerWidth: 100,
+          fill: 'black',
+          stroke: 'black',
+          strokeWidth: 20,
+          visible: false,
+        });
+
+        var question_mark = new Konva.Text({
+          x: stage.width() * 0.43,
+          y: stage.height() * 0.20,
+          text: '?',
+          fontSize: 300,
+        });
+
+        layer.add(arrow);
+        layer.add(question_mark);
+
+        stage.add(layer);
+
+        var do_rotation = function (direction) {
+          var tween = new Konva.Tween({
+            node: arrow,
+            duration: 0.05,
+            rotation: Math.PI * direction,
+          });
+
+          tween.play();
+          window.navigator.vibrate(200)
+        }
+
+        var ws = new WebSocket("ws://192.168.0.105:8765/"),
+            messages = document.createElement('ul'),
+            last_direction = null;
+
+        ws.onmessage = function (event) {
+            var new_direction = event.data;
+            if(new_direction === '?') {
+              arrow.visible(false);
+              question_mark.visible(true);
+              layer.batchDraw();
+            } else {
+              arrow.visible(true);
+              question_mark.visible(false);
+              if(new_direction !== last_direction || last_direction === null) {
+                do_rotation(new_direction);
+              }
+            }
+            last_direction = new_direction;
+        };
+
+      </script>
     </body>
 </html>

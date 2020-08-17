@@ -7,9 +7,17 @@ osc_startup()
 
 from osc4py3 import oscmethod as osm
 
+
+current_source = None
+
 def handlerfunction(address, *args):
-    # Will receive message address, and message data flattened in s, x, y
-    print(address, args)
+    global current_source
+    if len(args) and args[0]:
+        print('here')
+        # This source is being sent to the program out.
+        if address[-2] == '/':
+            current_source = address[-1]
+
 
 # Make server channels to receive packets.
 osc_udp_server('192.168.0.105', 4444, 'server')
@@ -26,5 +34,6 @@ osc_send(msg, 'aclientname')
 
 while True:
     osc_process()
+    print(current_source)
 
 osc_terminate()

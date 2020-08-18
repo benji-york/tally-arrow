@@ -84,6 +84,12 @@
             last_direction = new_direction;
         };
 
+        ws.onclose = function (event) {
+          arrow.visible(false);
+          question_mark.visible(true);
+          location.reload(true);
+        };
+
       </script>
     </body>
 </html>

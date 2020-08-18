@@ -14,10 +14,10 @@ current_tally = None
 def handle_program_response(address, *args):
     global current_tally
     if len(args) and args[0]:
-        print('here')
         # This source is being sent to the program out.
         if address[-2] == '/':
             current_tally = int(address[-1])
+            print('tally:', current_tally)
 
 
 # Make server channels to receive packets.
@@ -31,34 +31,35 @@ osc_send(msg, 'aclientname')
 
 
 tally_to_arrow_angle = {
-    1: 0,
     2: -5,
     3: -20,
     4: +5,
+    5: 0,
 }
 
 
 async def tally(websocket, path):
-    print('tally')
+    print('path:', path)
     last_tally = None
 
+    async for message in websocket:
+        print('->', message)
+        while current_tally == last_tally:
+            await asyncio.sleep(0.001)
+        angle = tally_to_arrow_angle.get(current_tally, '?')
+        last_tally = current_tally
+        print('<-', angle)
+        await websocket.send(str(angle))
+    print('exiting websocket handler')
+
+
+def osc_process_forever():
     while True:
         osc_process()
-        if current_tally != last_tally:
-            print('new tally:', current_tally)
-            angle = tally_to_arrow_angle.get(current_tally, '?')
-            last_tally = current_tally
-            while True:
-                try:
-                    print('sending to websocket...')
-                    await websocket.send(str(angle))
-                except websockets.exceptions.ConnectionClosedError:
-                    print('sending to websocket failed')
-                    pass
-                else:
-                    print('sending to websocket succeeded')
-                    break
+        time.sleep(0.001)
 
+osc_thread = threading.Thread(target=osc_process_forever, daemon=True)
+osc_thread.start()
 
 start_server = websockets.serve(tally, '0.0.0.0', 8765)
 asyncio.get_event_loop().run_until_complete(start_server)

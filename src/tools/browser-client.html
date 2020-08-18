@@ -64,9 +64,13 @@
           window.navigator.vibrate(200)
         }
 
-        var ws = new WebSocket("ws://192.168.0.105:8765/"),
-            messages = document.createElement('ul'),
-            last_direction = null;
+        var ws = new WebSocket("ws://192.168.0.105:8765/");
+        var last_direction = null;
+
+        ws.onopen = function (event) {
+          //setInterval(function () {ws.send('update');}, 500);
+          setTimeout(function () {ws.send('hello');}, 500);
+        };
 
         ws.onmessage = function (event) {
             var new_direction = event.data;
@@ -82,12 +86,13 @@
               }
             }
             last_direction = new_direction;
+            ws.send('update');
         };
 
         ws.onclose = function (event) {
           arrow.visible(false);
           question_mark.visible(true);
-          location.reload(true);
+          setTimeout(function () {location.reload(true);}, 500);
         };
 
       </script>

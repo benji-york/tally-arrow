@@ -13,6 +13,7 @@ deps-python-code-quality: assert-ve
 .PHONY: deps-python
 deps-python: assert-ve deps-python-code-quality
 	ve/bin/pip install websockets
+	ve/bin/pip install osc4py3
 
 .PHONY: pylint
 pylint:
